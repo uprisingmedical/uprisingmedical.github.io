@@ -8,10 +8,17 @@
 
   <!-- Single, light theme (remove ALL other <style> blocks) -->
 
- <script>
-  window.API_BASE = 'https://uprising-api-env.eba-gwnjpcua.us-east-1.elasticbeanstalk.com';
-  const BASE = window.API_BASE.replace(/\/+$/,'');
-  const api = (p, opts={}) => fetch(`${BASE}${p}`, { headers:{'Content-Type':'application/json'}, ...opts });
+<script>
+(function(){const EB='https://uprising-api-env.eba-gwnjpcua.us-east-1.elasticbeanstalk.com'.replace(/\/+$/,'');
+  const of=window.fetch.bind(window);
+  window.fetch=(i,o)=>{let u=typeof i==='string'?i:i.url;
+    if(u.startsWith('http://localhost:8080')) u=EB+u.slice('http://localhost:8080'.length);
+    else if(u.startsWith('/')) u=EB+u;
+    return of(u,o);
+  };
+  const oo=XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open=function(m,u,...r){if(u.startsWith('http://localhost:8080'))u=EB+u.slice(21);else if(u.startsWith('/'))u=EB+u;return oo.call(this,m,u,...r);};
+})();
 </script>
 
   
