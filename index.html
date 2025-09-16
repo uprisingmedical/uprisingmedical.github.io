@@ -1063,6 +1063,29 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
+<!-- 1) Set your API base URL -->
+<script>
+  window.API_BASE = 'https://uprising-api-env.eba-gwnjpcua.us-east-1.elasticbeanstalk.com';
+</script>
+
+<!-- 2) Call the API (runs after the page loads) -->
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const BASE = window.API_BASE.replace(/\/+$/,'');
+    try {
+      const res = await fetch(`${BASE}/problems`);
+      if (!res.ok) throw new Error(`API ${res.status}`);
+      const data = await res.json();
+      console.log('problems:', data);
+      // TODO: render data into the page if you want
+      // document.getElementById('problems').textContent = JSON.stringify(data, null, 2);
+    } catch (err) {
+      console.error(err);
+    }
+  });
+</script>
+
+
 </body>
 </html>
  
