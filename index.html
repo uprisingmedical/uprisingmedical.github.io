@@ -1,5 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+  
+<script>
+(() => {
+  const isLocal = location.hostname === "localhost" || location.hostname.startsWith("127.");
+  const BASE = isLocal ? "http://localhost:8080" : ""; // same-origin on EB
+
+  const _fetch = window.fetch.bind(window);
+  window.fetch = (input, init) => {
+    let url = typeof input === "string" ? input : input.url;
+
+    // 1) rewrite any hard-coded localhost -> BASE (prod becomes same-origin "")
+    if (url.startsWith("http://localhost:8080")) url = url.replace("http://localhost:8080", "");
+    // 2) ensure relative API calls go to backend (same-origin on EB)
+    if (url.startsWith("/")) url = BASE + url;
+
+    return _fetch(url, init);
+  };
+})();
+</script>
+
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -219,24 +239,6 @@
   </div>
 </section>
 
-<script>
-(() => {
-  const isLocal = location.hostname === "localhost" || location.hostname.startsWith("127.");
-  const BASE = isLocal ? "http://localhost:8080" : ""; // same-origin on EB
-
-  const origFetch = window.fetch;
-  window.fetch = (input, init) => {
-    let url = typeof input === "string" ? input : input.url;
-
-    // rewrite hard-coded localhost to BASE
-    if (url.startsWith("http://localhost:8080")) url = url.replace("http://localhost:8080", BASE);
-    // make relative API calls hit the backend (same-origin on EB)
-    else if (url.startsWith("/")) url = BASE + url;
-
-    return origFetch(url, init);
-  };
-})();
-</script>
 
 
 <script>
