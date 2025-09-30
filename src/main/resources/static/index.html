@@ -2,23 +2,11 @@
 <html lang="en">
   
 <script>
-(() => {
   const isLocal = location.hostname === "localhost" || location.hostname.startsWith("127.");
-  const BASE = isLocal ? "http://localhost:8080" : ""; // same-origin on EB
-
-  const _fetch = window.fetch.bind(window);
-  window.fetch = (input, init) => {
-    let url = typeof input === "string" ? input : input.url;
-
-    // 1) rewrite any hard-coded localhost -> BASE (prod becomes same-origin "")
-    if (url.startsWith("http://localhost:8080")) url = url.replace("http://localhost:8080", "");
-    // 2) ensure relative API calls go to backend (same-origin on EB)
-    if (url.startsWith("/")) url = BASE + url;
-
-    return _fetch(url, init);
-  };
-})();
+  const API_BASE = isLocal ? "http://localhost:8080" : ""; // EB same-origin
+  window.apiFetch = (p,o)=>fetch(`${API_BASE}${p.startsWith('/')?p:'/'+p}`,o);
 </script>
+
 
 <head>
   <meta charset="UTF-8" />
@@ -729,7 +717,7 @@ async function loadChallenges() {
     const container = document.getElementById("challengesList");
     container.innerHTML = "<p>Loading challenges...</p>";
     try {
-        const res = await fetch("http://localhost:8080/problems");
+        const res = await fetch("/problems");
         const problems = await res.json();
         container.innerHTML = problems.length === 0
   ? "<p class='muted'>No approved challenges yet.</p>"
@@ -756,7 +744,7 @@ async function loadPendingProblems() {
     const container = document.getElementById("pendingProblems");
     container.innerHTML = "<p>Loading pending problems...</p>";
     try {
-        const res = await fetch("http://localhost:8080/problems/pending");
+        const res = await fetch("/problems/pending");
         const problems = await res.json();
         container.innerHTML = problems.length === 0
             ? "<p>No pending problems.</p>"
@@ -779,7 +767,7 @@ async function loadPendingProblems() {
 // Approve Problem
 async function approveProblem(id) {
     try {
-        const res = await fetch(`http://localhost:8080/problems/${id}/approve`, { method: "PATCH" });
+        const res = await fetch(`/problems/${id}/approve`, { method: "PATCH" });
         if (res.ok) {
             alert("Problem approved!");
             loadPendingProblems();
@@ -825,7 +813,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const username = document.getElementById("loginUsername").value;
     const password = document.getElementById("loginPassword").value;
     try {
-        const res = await fetch("http://localhost:8080/auth/login", {
+        const res = await fetch("/auth/login", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({ username, password })
@@ -857,7 +845,7 @@ document.getElementById("createTeamForm").addEventListener("submit", async funct
     };
 
     try {
-        const res = await fetch("http://localhost:8080/teams", {
+        const res = await fetch("/teams", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
@@ -882,7 +870,7 @@ async function loadTeams() {
   container.innerHTML = "<p>Loading teams...</p>";
 
   try {
-    const res = await fetch("http://localhost:8080/teams");
+    const res = await fetch("/teams");
     const teams = await res.json();
 
     if (!Array.isArray(teams) || teams.length === 0) {
@@ -912,7 +900,7 @@ async function loadTeams() {
       const box = document.getElementById(`members-${id}`);
       if (!box) continue;
       try {
-        const mRes = await fetch(`http://localhost:8080/teams/${id}/members`);
+        const mRes = await fetch(`/teams/${id}/members`);
         if (!mRes.ok) { box.innerHTML = "<em>No approved members yet.</em>"; continue; }
         const members = await mRes.json();
         box.innerHTML = (Array.isArray(members) && members.length)
@@ -941,7 +929,7 @@ async function loadTeams() {
 
       btn.disabled = true; btn.textContent = "Sending...";
       try {
-        const res = await fetch(`http://localhost:8080/teams/${teamId}/request`, {
+        const res = await fetch(`/teams/${teamId}/request`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username })
@@ -964,7 +952,7 @@ async function loadJoinRequests() {
   box.innerHTML = "<p>Loading requests...</p>";
 
   try {
-    const res = await fetch("http://localhost:8080/teams/requests/pending");
+    const res = await fetch("/teams/requests/pending");
     if (!res.ok) throw new Error(await res.text());
     const reqs = await res.json();
 
@@ -997,7 +985,7 @@ function requestToJoin(teamId, btnEl) {
   const revert = () => { if (btnEl) { btnEl.disabled = false; btnEl.textContent = "Request to Join"; } };
   if (btnEl) { btnEl.disabled = true; btnEl.textContent = "Sending..."; }
 
-  fetch(`http://localhost:8080/teams/${id}/request`, {
+  fetch(`/teams/${id}/request`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username })
@@ -1018,7 +1006,7 @@ window.requestToJoin = requestToJoin;
 
 async function approveJoin(requestId) {
   try {
-    const res = await fetch(`http://localhost:8080/teams/requests/${requestId}/approve`, { method: "PATCH" });
+    const res = await fetch(`/teams/requests/${requestId}/approve`, { method: "PATCH" });
     if (res.ok) {
       alert("Request approved!");
       loadJoinRequests();
@@ -1033,7 +1021,7 @@ async function approveJoin(requestId) {
 
 async function denyJoin(requestId) {
   try {
-    const res = await fetch(`http://localhost:8080/teams/requests/${requestId}/deny`, { method: "PATCH" });
+    const res = await fetch(`/teams/requests/${requestId}/deny`, { method: "PATCH" });
     if (res.ok) {
       alert("Request denied.");
       loadJoinRequests();
