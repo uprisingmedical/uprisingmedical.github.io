@@ -693,7 +693,7 @@ document.getElementById("problemForm")?.addEventListener("submit", async (e) => 
   btn.disabled = true; btn.textContent = "Submitting…"; msg.textContent = "";
 
   try {
-    const res = await fetch("http://localhost:8080/problems", {
+    const res = await apiFetch("http://localhost:8080/problems", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, description, category })
@@ -717,7 +717,7 @@ async function loadChallenges() {
     const container = document.getElementById("challengesList");
     container.innerHTML = "<p>Loading challenges...</p>";
     try {
-        const res = await fetch("/problems");
+        const res = await apiFetch("/problems");
         const problems = await res.json();
         container.innerHTML = problems.length === 0
   ? "<p class='muted'>No approved challenges yet.</p>"
@@ -744,7 +744,7 @@ async function loadPendingProblems() {
     const container = document.getElementById("pendingProblems");
     container.innerHTML = "<p>Loading pending problems...</p>";
     try {
-        const res = await fetch("/problems/pending");
+        const res = await apiFetch("/problems/pending");
         const problems = await res.json();
         container.innerHTML = problems.length === 0
             ? "<p>No pending problems.</p>"
@@ -767,7 +767,7 @@ async function loadPendingProblems() {
 // Approve Problem
 async function approveProblem(id) {
     try {
-        const res = await fetch(`/problems/${id}/approve`, { method: "PATCH" });
+        const res = await apiFetch(`/problems/${id}/approve`, { method: "PATCH" });
         if (res.ok) {
             alert("Problem approved!");
             loadPendingProblems();
@@ -797,7 +797,7 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
     role: signupRole.value,
     adminCode: signupRole.value === "ADMIN" ? signupAdminCode.value : null
   };
-  const res = await fetch("/auth/register", {
+  const res = await apiFetch("/auth/register", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
@@ -813,7 +813,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const username = document.getElementById("loginUsername").value;
     const password = document.getElementById("loginPassword").value;
     try {
-        const res = await fetch("/auth/login", {
+        const res = await apiFetch("/auth/login", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({ username, password })
@@ -845,7 +845,7 @@ document.getElementById("createTeamForm").addEventListener("submit", async funct
     };
 
     try {
-        const res = await fetch("/teams", {
+        const res = await apiFetch("/teams", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
@@ -870,7 +870,7 @@ async function loadTeams() {
   container.innerHTML = "<p>Loading teams...</p>";
 
   try {
-    const res = await fetch("/teams");
+    const res = await apiFetch("/teams");
     const teams = await res.json();
 
     if (!Array.isArray(teams) || teams.length === 0) {
@@ -893,14 +893,14 @@ async function loadTeams() {
   </div>`;
     }).join("");
 
-    // Fetch approved members for each team
+    // apiFetch approved members for each team
     for (const t of teams) {
       const id = getId(t);
       if (id == null) continue;
       const box = document.getElementById(`members-${id}`);
       if (!box) continue;
       try {
-        const mRes = await fetch(`/teams/${id}/members`);
+        const mRes = await apiFetch(`/teams/${id}/members`);
         if (!mRes.ok) { box.innerHTML = "<em>No approved members yet.</em>"; continue; }
         const members = await mRes.json();
         box.innerHTML = (Array.isArray(members) && members.length)
@@ -929,7 +929,7 @@ async function loadTeams() {
 
       btn.disabled = true; btn.textContent = "Sending...";
       try {
-        const res = await fetch(`/teams/${teamId}/request`, {
+        const res = await apiFetch(`/teams/${teamId}/request`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username })
@@ -952,7 +952,7 @@ async function loadJoinRequests() {
   box.innerHTML = "<p>Loading requests...</p>";
 
   try {
-    const res = await fetch("/teams/requests/pending");
+    const res = await apiFetch("/teams/requests/pending");
     if (!res.ok) throw new Error(await res.text());
     const reqs = await res.json();
 
@@ -985,7 +985,7 @@ function requestToJoin(teamId, btnEl) {
   const revert = () => { if (btnEl) { btnEl.disabled = false; btnEl.textContent = "Request to Join"; } };
   if (btnEl) { btnEl.disabled = true; btnEl.textContent = "Sending..."; }
 
-  fetch(`/teams/${id}/request`, {
+  apiFetch(`/teams/${id}/request`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username })
@@ -1006,7 +1006,7 @@ window.requestToJoin = requestToJoin;
 
 async function approveJoin(requestId) {
   try {
-    const res = await fetch(`/teams/requests/${requestId}/approve`, { method: "PATCH" });
+    const res = await apiFetch(`/teams/requests/${requestId}/approve`, { method: "PATCH" });
     if (res.ok) {
       alert("Request approved!");
       loadJoinRequests();
@@ -1021,7 +1021,7 @@ async function approveJoin(requestId) {
 
 async function denyJoin(requestId) {
   try {
-    const res = await fetch(`/teams/requests/${requestId}/deny`, { method: "PATCH" });
+    const res = await apiFetch(`/teams/requests/${requestId}/deny`, { method: "PATCH" });
     if (res.ok) {
       alert("Request denied.");
       loadJoinRequests();
