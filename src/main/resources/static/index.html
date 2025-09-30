@@ -693,7 +693,7 @@ document.getElementById("problemForm")?.addEventListener("submit", async (e) => 
   btn.disabled = true; btn.textContent = "Submitting…"; msg.textContent = "";
 
   try {
-    const res = await apiFetch("http://localhost:8080/problems", {
+    const res = await apiFetch("/problems", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, description, category })
