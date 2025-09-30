@@ -1,7 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+  
+<script>
+(() => {
+  const isLocal = location.hostname === "localhost" || location.hostname.startsWith("127.");
+  const BASE = isLocal ? "http://localhost:8080" : ""; // same-origin on EB
+
+  const _fetch = window.fetch.bind(window);
+  window.fetch = (input, init) => {
+    let url = typeof input === "string" ? input : input.url;
+
+    // 1) rewrite any hard-coded localhost -> BASE (prod becomes same-origin "")
+    if (url.startsWith("http://localhost:8080")) url = url.replace("http://localhost:8080", "");
+    // 2) ensure relative API calls go to backend (same-origin on EB)
+    if (url.startsWith("/")) url = BASE + url;
+
+    return _fetch(url, init);
+  };
+})();
+</script>
+
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" href="data:,">
+
+  <link rel="stylesheet" href="style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Uprising Medical - Connecting Engineers to Medical Innovation</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
@@ -216,6 +239,8 @@
     </div>
   </div>
 </section>
+
+
 
 <script>
   const video = document.getElementById('heroVideo');
