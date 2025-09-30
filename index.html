@@ -220,12 +220,24 @@
 </section>
 
 <script>
-  const API_BASE = (location.hostname === "localhost" || location.hostname.startsWith("127."))
-    ? "http://localhost:8080"  // local dev
-    : "";                       // EB: same-origin
-  const apiFetch = (path, opts) =>
-    fetch(`${API_BASE}${path.startsWith('/') ? path : '/'+path}`, opts);
+(() => {
+  const isLocal = location.hostname === "localhost" || location.hostname.startsWith("127.");
+  const BASE = isLocal ? "http://localhost:8080" : ""; // same-origin on EB
+
+  const origFetch = window.fetch;
+  window.fetch = (input, init) => {
+    let url = typeof input === "string" ? input : input.url;
+
+    // rewrite hard-coded localhost to BASE
+    if (url.startsWith("http://localhost:8080")) url = url.replace("http://localhost:8080", BASE);
+    // make relative API calls hit the backend (same-origin on EB)
+    else if (url.startsWith("/")) url = BASE + url;
+
+    return origFetch(url, init);
+  };
+})();
 </script>
+
 
 <script>
   const video = document.getElementById('heroVideo');
