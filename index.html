@@ -220,18 +220,12 @@
 </section>
 
 <script>
-  // Use your final HTTPS API host here:
-  // For CloudFront: e.g., "d1234abcd.cloudfront.net"
-  // For custom domain: e.g., "api.uprisingmedical.org"
-  const PROD_HOST = "uprising.us-east-1.elasticbeanstalk.com"; // temporary
   const API_BASE = (location.hostname === "localhost" || location.hostname.startsWith("127."))
-    ? "http://localhost:8080"
-    : `https://${PROD_HOST}`;
-
-  window.apiFetch = (path, opts) =>
+    ? "http://localhost:8080"  // local dev
+    : "";                       // EB: same-origin
+  const apiFetch = (path, opts) =>
     fetch(`${API_BASE}${path.startsWith('/') ? path : '/'+path}`, opts);
 </script>
-
 
 <script>
   const video = document.getElementById('heroVideo');
