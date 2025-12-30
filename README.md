@@ -1,2 +1,2 @@
-Available at https://uprisingmedical.github.io through AWS services
+Available at https://uprisingmedical.com through AWS services
 
